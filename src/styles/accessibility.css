@@ -1,0 +1,80 @@
+/* High Contrast Theme */
+.high-contrast {
+  --bg-primary: #000000;
+  --text-primary: #ffffff;
+  --border-primary: #ffffff;
+  --accent-primary: #ffff00;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.high-contrast body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.high-contrast * {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-primary) !important;
+}
+
+/* Dyslexia-Friendly Font */
+.dyslexia-friendly {
+  --font-family: 'OpenDyslexic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.dyslexia-friendly body {
+  font-family: var(--font-family);
+  line-height: 1.8;
+  letter-spacing: 0.2em; /* From Code 2 */
+  word-spacing: 0.3em; /* From Code 2 */
+}
+
+/* Cursor Assistance */
+.cursor-assistance {
+  cursor: url('data:image/svg+xml,...'), auto; /* From Code 2 */
+  pointer-events: all;
+}
+
+.cursor-assistance * {
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Keyboard Navigation */
+.keyboard-navigation :focus {
+  outline: 3px solid #4f46e5 !important;
+  outline-offset: 2px !important;
+}
+
+/* Extended Time */
+.extended-time {
+  transition-duration: 1.5s !important; /* From Code 2 */
+}
+
+/* Font Size Controls */
+.text-size-large {
+  font-size: 120%; /* From Code 2 */
+}
+
+.text-size-larger {
+  font-size: 140%; /* From Code 2 */
+}
+
+.text-size-largest {
+  font-size: 160%; /* From Code 2 */
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
