@@ -5,7 +5,7 @@ import {
   LayoutDashboard, 
   UserCircle, 
   LogOut,
-  MessageSquare,
+  MessageSquare,   
   HelpCircle,
   Award,
   Shield
