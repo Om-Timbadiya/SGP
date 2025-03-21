@@ -2,14 +2,10 @@ import React, { useState } from 'react';
 import { 
   Eye, 
   Volume2, 
-  Mic, 
-  Monitor, 
+  Mic,  
   Clock, 
   Settings, 
   MousePointer2, 
-  Keyboard,
-  Hand,
-  Type
 } from 'lucide-react';
 import { useAccessibility } from '../context/AccessibilityContext';
 
@@ -21,13 +17,8 @@ export default function AccessibilityPanel() {
     activeFeatures,
     toggleFeature,
     isScreenReaderEnabled,
-    isHighContrastEnabled,
     isTextToSpeechEnabled,
-    isVoiceCommandsEnabled,
-    isGestureControlEnabled,
-    isKeyboardNavigationEnabled,
     isCursorAssistanceEnabled,
-    isDyslexiaFontEnabled,
   } = useAccessibility();
 
   const features = [

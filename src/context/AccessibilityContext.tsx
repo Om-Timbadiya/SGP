@@ -24,13 +24,19 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   const [fontSize, setFontSize] = useState(16);
   const [activeFeatures, setActiveFeatures] = useState<string[]>([]);
 
-  // ✅ Fix: Ensure speakText exists, or use Web Speech API fallback
   const textToSpeech = (text: string) => {
     if (accessibilityManager && typeof accessibilityManager.speakText === "function") {
       accessibilityManager.speakText(text);
     } else {
       const utterance = new SpeechSynthesisUtterance(text);
-      window.speechSynthesis.speak(utterance);
+  
+      const speak = () => window.speechSynthesis.speak(utterance);
+  
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.onvoiceschanged = speak;
+      } else {
+        speak();
+      }
     }
   };
 
@@ -61,7 +67,6 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     });
   };
 
-  // ✅ Fix: Proper template literal usage
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSize}px`; // Fixed Syntax
   }, [fontSize]);

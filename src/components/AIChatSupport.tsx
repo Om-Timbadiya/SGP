@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, Mic, X, Volume2 } from 'lucide-react';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface Message {
   id: string;
@@ -8,14 +9,20 @@ interface Message {
   timestamp: Date;
 }
 
-// 🔑 Replace this with your actual Google API key
-const GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY";
+// Secure API Key from Environment Variables
+const API_KEY = "../.env";
 
-const INITIAL_SYSTEM_PROMPT = `You are an expert educational assistant with deep knowledge in engineering, science, mathematics, and other academic fields. Your role is to:
-- Help students understand concepts
-- Provide step-by-step solutions
-- Offer exam preparation tips
-- Answer study-related questions in a clear and supportive way.`;
+// Gemini AI Setup
+const genAI = new GoogleGenerativeAI(API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+const INITIAL_SYSTEM_PROMPT = `You are an expert educational assessment AI assistant. Your role is to:
+1. Explain academic concepts in detail
+2. Guide students with step-by-step solutions
+3. Provide study strategies and exam preparation tips
+4. Clarify doubts in a structured manner
+5. Offer relevant examples and analogies
+Always maintain an encouraging and supportive tone while ensuring academic accuracy.`;
 
 export default function AIChatSupport() {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,44 +33,31 @@ export default function AIChatSupport() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Scroll to latest message
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 🌟 Function to get AI response using Google's Gemini API
+  // Generate AI Response
   const generateAIResponse = async (userMessage: string, chatHistory: Message[]) => {
     try {
-      const formattedHistory = chatHistory
-        .map(msg => `${msg.sender.toUpperCase()}: ${msg.text}`)
-        .join('\n');
-
-      const prompt = `${INITIAL_SYSTEM_PROMPT}\n\nChat History:\n${formattedHistory}\n\nUser: ${userMessage}\n\nAssistant:`;
-
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GOOGLE_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      const chat = model.startChat({
+        history: chatHistory.map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }],
+        })),
+        generationConfig: { maxOutputTokens: 200 },
       });
 
-      const data = await response.json();
-      console.log("API Response:", data);
-
-      if (data.candidates && data.candidates.length > 0) {
-        return data.candidates[0].content;
-      } else {
-        return "I'm having trouble processing your request. Please try again.";
-      }
+      const result = await chat.sendMessage(userMessage);
+      return result.response.text();
     } catch (error) {
       console.error('Error generating AI response:', error);
-      return "Sorry, I couldn't process your request. Please check your API key and try again.";
+      return "Sorry, I couldn't process your request right now. Please try again.";
     }
   };
 
-  // 🚀 Function to handle sending messages
+  // Handle Message Send
   const handleSend = async () => {
     if (!message.trim() || isLoading) return;
 
@@ -90,20 +84,17 @@ export default function AIChatSupport() {
 
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.error('Error in chat:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "I apologize, but I encountered an error. Please try again.",
-        sender: 'ai',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      console.error('Chat error:', error);
+      setMessages(prev => [
+        ...prev,
+        { id: (Date.now() + 1).toString(), text: "I encountered an error. Please try again.", sender: 'ai', timestamp: new Date() },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 🎤 Voice recognition (speech-to-text)
+  // Voice Recognition (Speech-to-Text)
   const toggleVoiceInput = () => {
     if (!isListening && 'webkitSpeechRecognition' in window) {
       const recognition = new (window as any).webkitSpeechRecognition();
@@ -112,18 +103,13 @@ export default function AIChatSupport() {
       recognition.interimResults = false;
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
+        const transcript = event.results.item(0).item(0).transcript;
         setMessage(transcript);
         setIsListening(false);
       };
 
-      recognition.onerror = () => {
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
 
       recognition.start();
       setIsListening(true);
@@ -132,16 +118,14 @@ export default function AIChatSupport() {
     }
   };
 
-  // 🔊 Text-to-speech
+  // Text-to-Speech
   const toggleTextToSpeech = (text: string) => {
     if (!isSpeaking) {
       const utterance = new SpeechSynthesisUtterance(text);
       window.speechSynthesis.speak(utterance);
       setIsSpeaking(true);
 
-      utterance.onend = () => {
-        setIsSpeaking(false);
-      };
+      utterance.onend = () => setIsSpeaking(false);
     } else {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
@@ -152,6 +136,7 @@ export default function AIChatSupport() {
     <div className="fixed bottom-4 right-4 z-50">
       {isOpen ? (
         <div className="bg-white rounded-lg shadow-xl w-96 h-[500px] flex flex-col">
+          {/* Header */}
           <div className="p-4 bg-indigo-600 text-white rounded-t-lg flex justify-between items-center">
             <div className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
@@ -162,13 +147,12 @@ export default function AIChatSupport() {
             </button>
           </div>
 
+          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
-              <div className="text-gray-500 text-center p-4">
-                👋 Hi! I'm your AI study buddy. Ask me anything about your studies!
-              </div>
+              <div className="text-gray-500 text-center p-4">👋 Hi! Ask me anything about your studies!</div>
             )}
-            {messages.map((msg) => (
+            {messages.map(msg => (
               <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] p-3 rounded-lg ${msg.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
                   <p className="whitespace-pre-wrap">{msg.text}</p>
@@ -182,21 +166,44 @@ export default function AIChatSupport() {
               </div>
             ))}
             {isLoading && (
-              <div className="text-gray-500 text-center p-4">⏳ Generating response...</div>
+              <div className="flex justify-start">
+                <div className="bg-gray-100 text-gray-800 p-3 rounded-lg">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                </div>
+              </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Input */}
           <div className="p-4 border-t">
             <div className="flex items-center gap-2">
-              <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSend()} placeholder="Ask me anything..." className="flex-1 p-2 border rounded-lg" disabled={isLoading} />
-              <button onClick={toggleVoiceInput} className="p-2 bg-gray-100 rounded-full"><Mic className="h-5 w-5" /></button>
-              <button onClick={handleSend} className="p-2 bg-indigo-600 text-white rounded-full"><Send className="h-5 w-5" /></button>
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                placeholder="Ask me anything..."
+                className="flex-1 p-2 border rounded-lg"
+                disabled={isLoading}
+              />
+              <button onClick={toggleVoiceInput} className={`p-2 rounded-full ${isListening ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>
+                <Mic className="h-5 w-5" />
+              </button>
+              <button onClick={handleSend} disabled={!message.trim()} className="p-2 bg-indigo-600 text-white rounded-full">
+                <Send className="h-5 w-5" />
+              </button>
             </div>
           </div>
         </div>
       ) : (
-        <button onClick={() => setIsOpen(true)} className="bg-indigo-600 p-3 rounded-full shadow-lg"><MessageCircle className="h-6 w-6 text-white" /></button>
+        <button onClick={() => setIsOpen(true)} className="bg-indigo-600 p-3 rounded-full shadow-lg hover:bg-indigo-700">
+          <MessageCircle className="h-6 w-6 text-white" />
+        </button>
       )}
     </div>
   );

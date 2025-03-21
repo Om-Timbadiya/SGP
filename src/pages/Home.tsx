@@ -33,7 +33,7 @@ function Home() {
           <div className="w-full py-6 flex items-center justify-between">
             <div className="flex items-center">
               <Brain className="h-8 w-8 text-white" />
-              <span className="ml-2 text-xl font-bold text-white">Shrinu</span>
+              <span className="ml-2 text-xl font-bold text-white">AI-Chintu</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link

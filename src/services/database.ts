@@ -88,7 +88,6 @@ export interface DBResult {
 }
 
 class DatabaseService {
-  // 🚀 User Operations
   async createUser(userData: Partial<DBUser>): Promise<void> {
     if (!userData.id) throw new Error('User ID is required.');
     const userRef = doc(db, USERS, userData.id);

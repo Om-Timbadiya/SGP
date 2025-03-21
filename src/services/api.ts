@@ -8,12 +8,12 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 seconds
+  timeout: 10000, 
   withCredentials: true,
 });
 
 // Retry failed requests
-const retryRequest = async (error: AxiosError, retryCount: number = 0): Promise<any> => {
+const retryRequest = async (error: AxiosError, retryCount = 0): Promise<any> => {
   const shouldRetry =
     retryCount < MAX_RETRIES &&
     (error.code === 'ECONNABORTED' ||
@@ -24,8 +24,8 @@ const retryRequest = async (error: AxiosError, retryCount: number = 0): Promise<
   if (shouldRetry && error.config) {
     await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
 
-    // Clone the request config to retry
-    const config: AxiosRequestConfig<any> = { ...error.config };
+    const config: AxiosRequestConfig = { ...error.config, headers: { ...error.config.headers } };
+    
     return api.request(config).catch(err => retryRequest(err, retryCount + 1));
   }
 
@@ -56,16 +56,19 @@ api.interceptors.response.use(
       return retryRequest(error);
     }
 
+    // Type assertion for error response data
+    const errorData = error.response.data as { message?: string };
+
     switch (error.response.status) {
       case 401:
         localStorage.removeItem('token');
         window.location.href = '/login';
-        break;
+        return Promise.reject(new Error('Unauthorized'));
       case 403:
-        toast.error('You do not have permission to perform this action');
+        toast.error('You do not have permission to perform this action.');
         break;
       case 404:
-        toast.error('Resource not found');
+        toast.error('Resource not found.');
         break;
       case 429:
         toast.error('Too many requests. Please try again later.');
@@ -74,11 +77,7 @@ api.interceptors.response.use(
         toast.error('Server error. Please try again later.');
         break;
       default:
-        const errorMessage =
-          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data
-            ? (error.response.data as { message: string }).message
-            : 'An error occurred';
-
+        const errorMessage = errorData.message || 'An error occurred';
         toast.error(errorMessage);
     }
 
@@ -86,13 +85,11 @@ api.interceptors.response.use(
   }
 );
 
+// Handle API errors properly
 const handleApiError = (error: AxiosError) => {
-  if (
-    error.response?.data &&
-    typeof error.response.data === 'object' &&
-    'message' in error.response.data
-  ) {
-    return Promise.reject(new Error((error.response.data as { message: string }).message));
+  const errorData = error.response?.data as { message?: string };
+  if (errorData?.message) {
+    return Promise.reject(new Error(errorData.message));
   }
   return Promise.reject(error);
 };

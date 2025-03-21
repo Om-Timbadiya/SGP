@@ -42,7 +42,7 @@ function Navbar() {
     <nav className="w-64 min-h-screen bg-white border-r border-gray-200 p-4">
       <div className="flex items-center gap-2 mb-8">
         <Brain className="w-8 h-8 text-indigo-600" />
-        <span className="text-xl font-bold text-gray-800">AI-Testimony</span>
+        <span className="text-xl font-bold text-gray-800">AI-Chintu</span>
       </div>
 
       <div className="space-y-2">
