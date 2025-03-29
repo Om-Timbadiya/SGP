@@ -15,9 +15,11 @@ import HelpCenter from './pages/HelpCenter';
 import Discussion from './pages/Discussion';
 import Certificates from './pages/Certificates';
 import Badges from './pages/Badges';
-import AIChatSupport from './components/AIChatSupport';
+import AIChatSupport from './components/student/AIChatSupport';
 import AccessibilityPanel from './components/AccessibilityPanel';
 import { Toaster } from 'react-hot-toast';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,11 +61,21 @@ function PublicRoute({ children }: PublicRouteProps) {
 
 function App() {
   return (
+    
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
           <DatabaseProvider>
             <AccessibilityProvider>
+            {/* <header>
+      <SignedOut>
+        <SignInButton />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
+    </header> */}
+
               <div className="min-h-screen bg-gray-50">
                 <Toaster position="top-right" />
                 <Routes>

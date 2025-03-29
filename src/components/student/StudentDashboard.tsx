@@ -93,7 +93,7 @@ export default function StudentDashboard({ assessments }: StudentDashboardProps)
     labels: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'Python', 'Data Structures'],
     datasets: [
       {
-        data: [85, 78, 65, 72, 88, 70],
+        data: [57, 28, 55, 32, 78, 20],
         backgroundColor: [
           'rgba(99, 102, 241, 0.8)',
           'rgba(59, 130, 246, 0.8)',
